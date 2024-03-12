@@ -1,5 +1,35 @@
 const express = require('express');
 const app = express();
+app.use(express.json())
+require('express-async-errors');
+
+
+const dogsRouter = require('./routes/dogs');
+const foodsRouter = express.Router({ mergeParams: true });
+
+// app.use((req, res, next) => {
+//   const error = new Error();
+//   error.statusCode = 500;
+//   next(error);
+// })
+app.use('dogs/:dogid/foods', foodsRouter);
+
+app.use('/dogs', dogsRouter);
+
+
+
+
+
+const logger = (req, res, next) => {
+
+  res.on('finish', () => {
+    // read and log the status code of the response
+    console.log(req.method, req.path, res.statusCode);
+  });
+  next();
+}
+
+app.use(logger);
 
 // For testing purposes, GET /
 app.get('/', (req, res) => {
@@ -14,10 +44,35 @@ app.post('/test-json', (req, res, next) => {
   next();
 });
 
+
+
 // For testing express-async-errors
 app.get('/test-error', async (req, res) => {
   throw new Error("Hello World!")
 });
+app.use((req, res, next) => {
+  const error = new Error("The requested resource couldn't be found.");
+  error.statusCode = 500;
+  next(error);
+})
 
-const port = 5000;
+app.use((err, req, res, next) => {
+  console.log(err);
+  res.status(err.statusCode || 500)
+  //console.log(process.env.NODE_ENV);
+  if (process.env.NODE_ENV == 'production') {
+    res.json({
+      message: err.message,
+      statusCode: err.statusCode
+    });
+  } else {
+    res.json({
+      message: err.message,
+      statusCode: err.statusCode,
+      stack: err.stack
+    });
+  }
+})
+
+const port = process.env.PORT;
 app.listen(port, () => console.log('Server is listening on port', port));

@@ -1,5 +1,9 @@
 // ------------------------------  SERVER DATA ------------------------------  
 
+const { Router } = require("express");
+
+const router = Router();
+
 let nextFoodId = 1;
 function getNewFoodId() {
   const newFoodId = nextFoodId;
@@ -60,3 +64,6 @@ const createFood = (req, res) => {
 // ------------------------------  ROUTER ------------------------------  
 
 // Your code here 
+router.get('/', getFoodsByDogId);
+
+module.exports = router;
